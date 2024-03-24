@@ -1,2 +1,6 @@
 # static-site
-For small boot.dev assignment
+Static site generator. Made as part of boot.dev assignment.
+
+## Scope
+
+## How to run
