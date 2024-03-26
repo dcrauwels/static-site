@@ -15,6 +15,11 @@ class HTMLNode:
                 result += f" {key}=\"{value}\""
         return result
 
+    def __eq__(self, node):
+        if isinstance(node, HTMLNode):
+            return self.tag == node.tag and self.value == node.value and self.children == node.vhildren and self.props == node.props
+        return False
+
     def __repr__(self):
         return f"HTMLNode({self.tag}, {self.value}, {self.children}, {self.props})"
 
@@ -39,13 +44,14 @@ class ParentNode(HTMLNode):
     def to_html(self):
         if self.tag is None:
             raise ValueError("Tag not provided. ParentNodes should have children - i.e. should be nesting LeafNodes inside tags.")
-        if children is None:
+        if self.children is None:
             raise ValueError("Children not provided. ParentNodes shoudl have children.")
         result = f"<{self.tag}>"
-        for child in children:
+        for child in self.children:
             result += child.to_html()
         result += f"</{self.tag}>"
         return result
 
     def __repr__(self):
         return f"ParentNode({self.tag}, {self.children}, {self.props})"
+
