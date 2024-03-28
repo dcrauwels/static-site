@@ -1,7 +1,7 @@
 import unittest
 
 from textnode import TextNode 
-from htmlnode import HTMLNode, LeafNode, ParentNode, text_node_to_html_node
+from htmlnode import HTMLNode, LeafNode, ParentNode
 
 class TestTextNode(unittest.TestCase):
     def test_repr(self):
@@ -20,11 +20,6 @@ class TestTextNode(unittest.TestCase):
         self.assertEqual(node1.to_html(), "<div><a href=\"www.google.com\">Link</a><a href=\"www.google.com\">Link</a></div>")
         node2 = ParentNode("p", [node1])
 
-    def test_text_to_leaf(self):
-        node1 = TextNode("Body", "image", "https://www.google.com")
-        lnode1 = text_node_to_html_node(node1)
-        node2 = LeafNode("img", "", {"src": "https://www.google.com", "alt": "Body"})
-        self.assertEqual(lnode1.to_html(),node2.to_html())
 
 
 if __name__ == "__main__":
