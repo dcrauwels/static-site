@@ -34,6 +34,7 @@ class TestTextNode(unittest.TestCase):
         node1 = TextNode("Greetings **Bold** Text!", "text")
         with self.assertRaises(ValueError):
             snode1 = split_nodes_delimiter([node1], "*", "italic")
+            self.assertEqual(node1, snode1)
 
     def test_single_split_nodes_delimiter(self):
         #Test case with a single asterisk and *italic* delimiter. Should not execute the regular str.split() method.
@@ -47,6 +48,7 @@ class TestTextNode(unittest.TestCase):
         node1 = TextNode("Greetings Bold Text!", "text")
         with self.assertRaises(ValueError):
             snode1 = split_nodes_delimiter([node1], "*", "italic")
+            self.assertEqual(node1, snode1)
 
     def test_twin_split_nodes_delimiter(self):
         node1 = TextNode("We **test** two **emboldened** fragments.", "text")
@@ -54,8 +56,11 @@ class TestTextNode(unittest.TestCase):
         rnode1 = [TextNode("We ", "text"), TextNode("test", "bold"), TextNode(" two ", "text"), TextNode("emboldened", "bold"), TextNode(" fragments.", "text")]
         self.assertEqual(snode1, rnode1)
 
-    def test_link_split_nodes_delimiter(self):
-        pass #nyi
+    def test_escaped_split_nodes_delimiter(self):
+        node1 = TextNode("This is a sentence \*with fake italic\*. Will it work?", "text")
+        with self.assertRaises(ValueError):
+            snode1 = split_nodes_delimiter([node1], "*", "italic")
+            self.assertEqual(node1, snode1)
 
     def test_nested_split_nodes_delimiter(self):
         #Test case with delimiter inside delimiter
