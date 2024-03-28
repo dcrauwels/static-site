@@ -15,6 +15,9 @@ class TextNode:
     def __repr__(self):
         return f"TextNode(\"{self.text}\", {self.text_type}, {self.url})"
 
+    def __getitem__(self, item):
+        return TextNode(self.text[item], self.text_type, self.url)
+
 def text_node_to_html_node(text_node):
     # Converts a TextNode to a LeafNode based on the TextNode.text_type attribute.
     if text_node.text_type == "text":
@@ -50,31 +53,29 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
         for i in range(len(o.text)):
             
             # Check if delimiter is found and is not escaped -> append to delimiters_counted list
-            print(o.text[i:i+len(delimiter)])
-
             delimiter_found = False
             if not (i == len(o.text) and len(delimiter) > 1): # str out of bounds
                 delimiter_found = delimiter == o.text[i:i+len(delimiter)] and delimiter != o.text[i+1:i+len(delimiter)+1]
             escape_found = False
-            if i > 0: # str out of bounds (negative wrap really)
-                escape_found = o.text[i-1] != "\\"
+            #if i > 0: # str out of bounds (negative wrap really)
+                #escape_found = o.text[i-1] == "\\"
             if delimiter_found and not escape_found: 
-                print(f"Delimiter found at index {i}: {o.text[i:i+len(delimiter)]}")
+                #print(f"Delimiter found at index {i}: {o.text[i:i+len(delimiter)]}")
                 delimiters_counted.append(i)
                 if text_type == "link" or text_type == "image": # For links and images
                     delimiter = "]"
             
-            # When two delimiters found: we split only the relevant part
+            # When two delimiters found
             if len(delimiters_counted) == 2:
-                new_nodes = o.text[delimiters_counted[0]:delimiters_counted[1]+1].split(delimiter)
-                for node in enumerate([n for n in new_nodes if n!= ""]): # Use enumerate to track even/odd and list comprehension to filter out empty items
-                    if (node[0] % 2) == 0: 
-                        result.append(TextNode(node[1], "text"))
-                    else:
-                        result.append(TextNode(node[1], text_type))
-                o = o[delimiters_counted[1]:] # We'll need this to append the tail of o.text
+                new_nodes = [TextNode(o.text[0:delimiters_counted[0]], "text")]
+                new_nodes.append(TextNode(o.text[delimiters_counted[0]+len(delimiter) : delimiters_counted[1]], text_type))
+    
+                new_nodes = [n for n in new_nodes if n.text != ""]
+                result.extend(new_nodes)
 
-                delimiters_counted = [] # Reset the delimiters_counted list in case we find another marked section
+                o = TextNode(o.text[delimiters_counted[1]+len(delimiter):], "text") # Either for tail or second delimited section
+                
+                delimiters_counted = [] # Reset the delimiters_counted list in case we find another delimited section
                 if text_type == "link" or text_type == "image": # For links and images
                     delimiter = "["
 

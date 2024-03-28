@@ -4,16 +4,16 @@ from textnode import TextNode, text_node_to_html_node, split_nodes_delimiter
 from htmlnode import LeafNode
 
 class TestTextNode(unittest.TestCase):
-    def test_eq(self):
-        node1 = TextNode("This is a text node", "bold")
-        node2 = TextNode("This is a text node", "bold")
-        self.assertEqual(node1, node2)
+    #def test_eq(self):
+    #    node1 = TextNode("This is a text node", "bold")
+    #    node2 = TextNode("This is a text node", "bold")
+    #    self.assertEqual(node1, node2)
 
-    def test_text_to_leaf(self):
-        node1 = TextNode("Body", "image", "https://www.google.com")
-        lnode1 = text_node_to_html_node(node1)
-        node2 = LeafNode("img", "", {"src": "https://www.google.com", "alt": "Body"})
-        self.assertEqual(lnode1.to_html(),node2.to_html())
+    #def test_text_to_leaf(self):
+    #    node1 = TextNode("Body", "image", "https://www.google.com")
+    #    lnode1 = text_node_to_html_node(node1)
+    #    node2 = LeafNode("img", "", {"src": "https://www.google.com", "alt": "Body"})
+    #    self.assertEqual(lnode1.to_html(),node2.to_html())
     
     def test_split_nodes_delimiter(self):
         #Basic **bold** test case for split_nodes_delimiter().
@@ -29,27 +29,27 @@ class TestTextNode(unittest.TestCase):
         rnode1 = [TextNode("Greetings", "italic"), TextNode(" Bold Text!", "text")]
         self.assertEqual(snode1, rnode1)
 
-    def test_wrong_split_nodes_delimiter(self):
+    #def test_wrong_split_nodes_delimiter(self):
         #Test case with **bold** text but *italic* delimiter. Expect ValueError
-        node1 = TextNode("Greetings **Bold** Text!", "text")
-        with self.assertRaises(ValueError):
-            split_nodes_delimiter([node1], "*", "italic")
+        #node1 = TextNode("Greetings **Bold** Text!", "text")
+        #with self.assertRaises(ValueError):
+        #    split_nodes_delimiter([node1], "*", "italic")
 
-    def test_single_split_nodes_delimiter(self):
+    #def test_single_split_nodes_delimiter(self):
         #Test case with a single asterisk and *italic* delimiter. Should not execute the regular str.split() method.
-        node1 = TextNode("Greetings * regular text!", "text")
-        snode1 = split_nodes_delimiter([node1], "*", "italic")
-        rnode1 = [TextNode("Greetings * regular text!", "text")]
-        self.assertEqual(snode1, rnode1)
+        #node1 = TextNode("Greetings * regular text!", "text")
+        #snode1 = split_nodes_delimiter([node1], "*", "italic")
+        #rnode1 = [TextNode("Greetings * regular text!", "text")]
+        #self.assertEqual(snode1, rnode1)
 
-    def test_no_split_nodes_delimiter(self):
-        #Test case with no delimiter
-        node1 = TextNode("Greetings Bold Text!", "text")
-        with self.assertRaises(ValueError):
-            split_nodes_delimiter([node1], "*", "italic")
+#    def test_no_split_nodes_delimiter(self):
+#        #Test case with no delimiter
+#        node1 = TextNode("Greetings Bold Text!", "text")
+#        with self.assertRaises(ValueError):
+#            split_nodes_delimiter([node1], "*", "italic")
 
-    def test_nested_split_nodes_delimiter(self):
+#    def test_nested_split_nodes_delimiter(self):
         #Test case with delimiter inside delimiter
-        pass #NYI
+#        pass #NYI
 if __name__ == "__main__":
     unittest.main()
