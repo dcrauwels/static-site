@@ -43,9 +43,7 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
         # Escapes
         if not isinstance(o, TextNode): #Kind of an escape if we get unexpected items in the old_nodes list
             result.append(o)
-        if delimiter not in o.text: #Escape for when delimiter is not found. Still doesn't do the trick for delimiter = * and **bold** text appears.
-            raise ValueError(f"Delimiter {delimiter} not found in node {o}.")
-
+        any_delimiters = False
         ## I could implement this entire loop as a subfunction to also lift out the image/link url, which is not supported right now.
 
         # Scroll over the entirity of o.text while tracking delimiters in delimiter_counted
@@ -60,27 +58,38 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             #if i > 0: # str out of bounds (negative wrap really)
                 #escape_found = o.text[i-1] == "\\"
             if delimiter_found and not escape_found: 
-                #print(f"Delimiter found at index {i}: {o.text[i:i+len(delimiter)]}")
+                any_delimiters = True
                 delimiters_counted.append(i)
                 if text_type == "link" or text_type == "image": # For links and images
                     delimiter = "]"
-            
-            # When two delimiters found
-            if len(delimiters_counted) == 2:
-                # Dropped the entire .split() usage and just manually identified the relevant substrings. Much easier.
-                new_nodes = [TextNode(o.text[0:delimiters_counted[0]], "text")]
-                new_nodes.append(TextNode(o.text[delimiters_counted[0]+len(delimiter) : delimiters_counted[1]], text_type))
-    
-                new_nodes = [n for n in new_nodes if n.text != ""] # Filter out empty nodes. In case the string starts with a delimiter.
-                result.extend(new_nodes) # Payoff
-
-                o = o[delimiters_counted[1]+len(delimiter):] # Either for tail or second delimited section
-                
-                delimiters_counted = [] # Reset the delimiters_counted list in case we find another delimited section
-                if text_type == "link" or text_type == "image": # For links and images
-                    delimiter = "["
-
-        # Append remaining tail of o to result
-        result.append(o)
+        print(delimiters_counted)     #debug
         
-    return result
+        # Payoff starts here. First we init in this if/else, then enter the while loop
+        o_tail = o
+        new_nodes = []
+
+        # When two or more delimiters found
+        while len(delimiters_counted) >= 2:
+            new_nodes.append(o_tail[0:delimiters_counted[0]])
+            new_nodes.append(TextNode(o_tail.text[delimiters_counted[0]+len(delimiter) : delimiters_counted[1]], text_type))
+
+            new_nodes = [n for n in new_nodes if n.text != ""] # Filter out empty nodes. In case the string starts with a delimiter.
+
+            o_tail = o_tail[delimiters_counted[1]+len(delimiter):] # Either for tail or second delimited section
+            delimiters_counted = [x - delimiters_counted[1]-len(delimiter) for x in delimiters_counted] 
+            del delimiters_counted[0:2] # Reset the delimiters_counted list in case we find another delimited section
+            if text_type == "link" or text_type == "image": # For links and images
+                delimiter = "["
+        
+        result.extend(new_nodes) # Payoff for delimited substrings
+        
+        # Payoff for remaining tail of o_tail
+        if o_tail.text != "":
+            result.append(o_tail)
+            
+        # Tidyness check for when delimiter is not found. Still doesn't do the trick for delimiter = * and **bold** text appears.
+        if not any_delimiters: 
+            raise ValueError(f"Delimiter {delimiter} not found in node {o}.")
+        else:
+            return result
+        
