@@ -33,7 +33,7 @@ class TestTextNode(unittest.TestCase):
         #Test case with **bold** text but *italic* delimiter. Expect ValueError
         node1 = TextNode("Greetings **Bold** Text!", "text")
         with self.assertRaises(ValueError):
-            split_nodes_delimiter([node1], "*", "italic")
+            snode1 = split_nodes_delimiter([node1], "*", "italic")
 
     def test_single_split_nodes_delimiter(self):
         #Test case with a single asterisk and *italic* delimiter. Should not execute the regular str.split() method.
@@ -46,7 +46,7 @@ class TestTextNode(unittest.TestCase):
         #Test case with no delimiter
         node1 = TextNode("Greetings Bold Text!", "text")
         with self.assertRaises(ValueError):
-            split_nodes_delimiter([node1], "*", "italic")
+            snode1 = split_nodes_delimiter([node1], "*", "italic")
 
     def test_twin_split_nodes_delimiter(self):
         node1 = TextNode("We **test** two **emboldened** fragments.", "text")

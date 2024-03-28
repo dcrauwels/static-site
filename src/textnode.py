@@ -53,16 +53,19 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             # Check if delimiter is found and is not escaped -> append to delimiters_counted list
             delimiter_found = False
             if not (i == len(o.text) and len(delimiter) > 1): # str out of bounds
-                delimiter_found = delimiter == o.text[i:i+len(delimiter)] and delimiter != o.text[i+1:i+len(delimiter)+1]
+                delimiter_found = (
+                        delimiter == o.text[i:i+len(delimiter)] and # delimiter matches text from i, moving forward
+                        delimiter != o.text[i+1:i+len(delimiter)+1] and # delimiter does not appear after i
+                        delimiter != o.text[i-len(delimiter):i] # delimiter does not appear before i
+                        )
             escape_found = False
-            #if i > 0: # str out of bounds (negative wrap really)
-                #escape_found = o.text[i-1] == "\\"
+            if i > 0: # str out of bounds (negative wrap really)
+                escape_found = o.text[i-1] == "\\"
             if delimiter_found and not escape_found: 
                 any_delimiters = True
                 delimiters_counted.append(i)
                 if text_type == "link" or text_type == "image": # For links and images
                     delimiter = "]"
-        print(delimiters_counted)     #debug
         
         # Payoff starts here. First we init in this if/else, then enter the while loop
         o_tail = o
