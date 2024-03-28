@@ -67,13 +67,14 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             
             # When two delimiters found
             if len(delimiters_counted) == 2:
+                # Dropped the entire .split() usage and just manually identified the relevant substrings. Much easier.
                 new_nodes = [TextNode(o.text[0:delimiters_counted[0]], "text")]
                 new_nodes.append(TextNode(o.text[delimiters_counted[0]+len(delimiter) : delimiters_counted[1]], text_type))
     
-                new_nodes = [n for n in new_nodes if n.text != ""]
-                result.extend(new_nodes)
+                new_nodes = [n for n in new_nodes if n.text != ""] # Filter out empty nodes. In case the string starts with a delimiter.
+                result.extend(new_nodes) # Payoff
 
-                o = TextNode(o.text[delimiters_counted[1]+len(delimiter):], "text") # Either for tail or second delimited section
+                o = o[delimiters_counted[1]+len(delimiter):] # Either for tail or second delimited section
                 
                 delimiters_counted = [] # Reset the delimiters_counted list in case we find another delimited section
                 if text_type == "link" or text_type == "image": # For links and images
