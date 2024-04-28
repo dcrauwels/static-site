@@ -1,4 +1,5 @@
 from htmlnode import LeafNode
+import extract
 
 class TextNode:
     # Models a Markdown string.
@@ -18,7 +19,7 @@ class TextNode:
     def __getitem__(self, item):
         return TextNode(self.text[item], self.text_type, self.url)
 
-def text_node_to_html_node(text_node):
+def text_node_to_html_node(text_node: TextNode) -> LeafNode:
     # Converts a TextNode to a LeafNode based on the TextNode.text_type attribute.
     if text_node.text_type == "text":
         return LeafNode(None, text_node.text)
@@ -35,9 +36,10 @@ def text_node_to_html_node(text_node):
 
     raise TypeError(f"Text Node has invalid type: {text_node.text_type}") # Catch-all if no return is taken earlier
 
-def split_nodes_delimiter(old_nodes, delimiter, text_type):
+def split_nodes_delimiter(old_nodes: list, delimiter: str, text_type: str) -> list:
     # Splits a TextNode into a list of TextNodes with appropriate text_types based on a delimiter. Currently needs the delimiter and text_type to be provided manually.
     result = []
+    hyperlink_delimiters = ["[", "]", "(", ")"]
 
     for o in old_nodes:
         # Escapes
@@ -64,25 +66,33 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             if delimiter_found and not escape_found: 
                 any_delimiters = True
                 delimiters_counted.append(i)
-                if text_type == "link" or text_type == "image": # For links and images
-                    delimiter = "]"
-        
-        # Payoff starts here. First we init in this if/else, then enter the while loop
+                # Images and links use a [text](url) format in MD, so the delimiter needs to be dynamically updated.
+                # This shifts the delimiter to the next in a sequence of []() characters with a modulus to overflow and reset when we reach ).
+                if delimiter in hyperlink_delimiters:
+                    delimiter = hyperlink_delimiters[(hyperlink_delimiters.index(delimiter) + 1) % len(hyperlink_delimiters)]
+
+        # Payoff starts here. First we init, then enter the while loop
         o_tail = o
         new_nodes = []
 
         # When two or more delimiters found
         while len(delimiters_counted) >= 2:
-            new_nodes.append(o_tail[0:delimiters_counted[0]])
-            new_nodes.append(TextNode(o_tail.text[delimiters_counted[0]+len(delimiter) : delimiters_counted[1]], text_type))
+            # First append the part leading up to the first delimiter found.     
+            new_nodes.append(o_tail[0:delimiters_counted[0]]) #see __getitem__ implementation in TextNode class for subscripting.
+            
+            # Then append the node content
+            new_nodes.append(TextNode(o_tail.text[delimiters_counted[0]+len(delimiter) : delimiters_counted[1]], text_type)) 
 
-            new_nodes = [n for n in new_nodes if n.text != ""] # Filter out empty nodes. In case the string starts with a delimiter.
+            # Filter out empty nodes. Needed in case the string starts with a delimiter.
+            new_nodes = [n for n in new_nodes if n.text != ""] 
 
-            o_tail = o_tail[delimiters_counted[1]+len(delimiter):] # Either for tail or second delimited section
+            # Update the o_tail container. Either for appending tail or second delimited section.
+            o_tail = o_tail[delimiters_counted[1]+len(delimiter):] 
+            # And update the indices of the delimiters_counted list as the o_tail referenced by these indices has shifted accordingly.
             delimiters_counted = [x - delimiters_counted[1]-len(delimiter) for x in delimiters_counted] 
+
+            # Delete the two delimiter indices used for this run of the while loop.
             del delimiters_counted[0:2] # Reset the delimiters_counted list in case we find another delimited section
-            if text_type == "link" or text_type == "image": # For links and images
-                delimiter = "["
         
         result.extend(new_nodes) # Payoff for delimited substrings
         
@@ -95,4 +105,54 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             raise ValueError(f"Delimiter {delimiter} not found in node {o}.")
         else:
             return result
-        
+
+def split_nodes_image(old_nodes:list) -> list:
+    # Returns a list of TextNodes with images properly implemented. We'll do this by calling split_nodes_delimiter() and fixing the output.
+    # This entails two steps:
+    # 1. Remove the leading exclamation mark (!) for images in MD from the TextNode(..., "text") preceding the image tag.
+    # 1.1. Note that this means we need to check if the TextNode(..., "text") in question is empty after doing so. (This means the original TextNode started with an image.)
+    # 2. Concatenate the two instances of TextNode(..., "image") split_nodes_delimiter will find.
+    
+    # Init result list
+    split_nodes = split_nodes_delimiter(old_nodes, "[", "image")
+    
+    # Loop over nodes to find image TextNode positions
+    image_positions = []
+    for i in range(len(split_nodes)):
+        if split_nodes[i].text_type == "image":
+            image_positions.append(i)
+
+    while len(image_positions) >= 2:
+        # 2. Concatenate the two instances of TextNode
+        concat_node = TextNode(split_nodes[image_positions[0]].text, "image", split_nodes[image_positions[1]].text)
+        split_nodes[image_positions[0]] = concat_node
+        del split_nodes[image_positions[1]]
+
+        # 1. Remove the leading exclamation mark
+        split_nodes[image_positions[0]-1].text = split_nodes[image_positions[0]-1].text[:-1]
+        # 1.1 Check if resulting TextNode is empty
+        if split_nodes[image_positions[0]-1].text == "":
+            del split_nodes[image_positions[0]-1]
+
+        # Update image_positions list
+        del image_positions[0:2]
+
+    return split_nodes
+
+def split_nodes_link(old_nodes: list) -> list:
+    # Returns a list of TextNodes with links properly implemented. Copy of split_nodes_image(). Refer to that function for comments.
+    
+    split_nodes = split_nodes_delimiter(old_nodes, "[", "link")
+    link_positions = []
+
+    for i in range(len(split_nodes)):
+        if split_nodes[i].text_type == "link":
+            link_positions.append(i)
+
+    while len(link_positions) >= 2:
+        concat_node = TextNode(split_nodes[link_positions[0]].text, "link", split_nodes[link_positions[1]].text)
+        split_nodes[link_positions[0]] = concat_node
+        del split_nodes[link_positions[1]]
+        del link_positions[0:2]
+
+    return split_nodes

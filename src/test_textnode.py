@@ -1,6 +1,6 @@
 import unittest
 
-from textnode import TextNode, text_node_to_html_node, split_nodes_delimiter
+from textnode import TextNode, text_node_to_html_node, split_nodes_delimiter, split_nodes_image, split_nodes_link
 from htmlnode import LeafNode
 
 class TestTextNode(unittest.TestCase):
@@ -61,6 +61,18 @@ class TestTextNode(unittest.TestCase):
         with self.assertRaises(ValueError):
             snode1 = split_nodes_delimiter([node1], "*", "italic")
             self.assertEqual(node1, snode1)
+
+    def test_split_nodes_image_basic(self):
+        node1 = TextNode("This sentence contains an image: ![alt](www.image.com).", "text")
+        snode1 = split_nodes_image([node1])
+        rnode1 = [TextNode("This sentence contains an image: ", "text"), TextNode("alt", "image", "www.image.com"), TextNode(".", "text")]
+        self.assertEqual(snode1, rnode1)
+
+    def test_split_nodes_link_basic(self):
+        node1 = TextNode("This sentence contains a [hyperlink](www.image.com).", "text")
+        snode1 = split_nodes_link([node1])
+        rnode1 = [TextNode("This sentence contains a ", "text"), TextNode("hyperlink", "link", "www.image.com"), TextNode(".", "text")]
+        self.assertEqual(snode1, rnode1)
 
     def test_nested_split_nodes_delimiter(self):
         #Test case with delimiter inside delimiter
