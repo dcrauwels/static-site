@@ -16,7 +16,7 @@ def extract_markdown_images(text: str) -> list:
     # In summary: !\[(.*?)\]\((.*?)\)
     
     reg_str = r"!\[(.*?)\]\((.*?)\)"
-    return re.findall(reg_str, text)
+    return re.search(reg_str, text)
 
 def extract_markdown_links(text: str) -> list:
     # Returns a list of tuples containing (anchor text, url). In markdown, a hyperlink is formatted as [ANCHOR_TEXT](URL).
@@ -24,4 +24,4 @@ def extract_markdown_links(text: str) -> list:
     # \[(.*?)\][((.*?)\)
 
     reg_str = r"[^!]\[(.*?)\]\((.*?)\)"
-    return re.findall(reg_str, text)
+    return re.search(reg_str, text)

@@ -1,6 +1,6 @@
 import unittest
 
-from textnode import TextNode, text_node_to_html_node, split_nodes_delimiter, split_nodes_image, split_nodes_link
+from textnode import TextNode, text_node_to_html_node, split_nodes_delimiter, text_to_textnodes
 from htmlnode import LeafNode
 
 class TestTextNode(unittest.TestCase):
@@ -24,17 +24,16 @@ class TestTextNode(unittest.TestCase):
 
     def test_start_split_nodes_delimiter(self):
         #Test case where the *italic* text is at the start
-        node1 = TextNode("*Greetings* Bold Text!", "text")
+        node1 = TextNode("*Greetings* Bold Text And *Another*", "text")
         snode1 = split_nodes_delimiter([node1], "*", "italic")
-        rnode1 = [TextNode("Greetings", "italic"), TextNode(" Bold Text!", "text")]
+        rnode1 = [TextNode("Greetings", "italic"), TextNode(" Bold Text And ", "text"), TextNode("Another", "italic")]
         self.assertEqual(snode1, rnode1)
 
     def test_wrong_split_nodes_delimiter(self):
         #Test case with **bold** text but *italic* delimiter. Expect ValueError
-        node1 = TextNode("Greetings **Bold** Text!", "text")
-        with self.assertRaises(ValueError):
-            snode1 = split_nodes_delimiter([node1], "*", "italic")
-            self.assertEqual(node1, snode1)
+        node1 = [TextNode("Greetings **Bold** Text!", "text")]
+        snode1 = split_nodes_delimiter(node1, "*", "italic")
+        self.assertEqual(node1, snode1)
 
     def test_single_split_nodes_delimiter(self):
         #Test case with a single asterisk and *italic* delimiter. Should not execute the regular str.split() method.
@@ -45,10 +44,9 @@ class TestTextNode(unittest.TestCase):
 
     def test_no_split_nodes_delimiter(self):
         #Test case with no delimiter
-        node1 = TextNode("Greetings Bold Text!", "text")
-        with self.assertRaises(ValueError):
-            snode1 = split_nodes_delimiter([node1], "*", "italic")
-            self.assertEqual(node1, snode1)
+        node1 = [TextNode("Greetings Bold Text!", "text")]
+        snode1 = split_nodes_delimiter(node1, "*", "italic")
+        self.assertEqual(node1, snode1)
 
     def test_twin_split_nodes_delimiter(self):
         node1 = TextNode("We **test** two **emboldened** fragments.", "text")
@@ -57,10 +55,9 @@ class TestTextNode(unittest.TestCase):
         self.assertEqual(snode1, rnode1)
 
     def test_escaped_split_nodes_delimiter(self):
-        node1 = TextNode("This is a sentence \*with fake italic\*. Will it work?", "text")
-        with self.assertRaises(ValueError):
-            snode1 = split_nodes_delimiter([node1], "*", "italic")
-            self.assertEqual(node1, snode1)
+        node1 = [TextNode(r"This is a sentence \*with fake italic\*. Will it work?", "text")]
+        snode1 = split_nodes_delimiter(node1, "*", "italic")
+        self.assertEqual(node1, snode1)
 
     def test_split_nodes_delimiter_image(self):
         node1 = TextNode("This sentence contains an image: ![alt](www.image.com).", "text")
@@ -68,36 +65,18 @@ class TestTextNode(unittest.TestCase):
         rnode1 = [TextNode("This sentence contains an image: ", "text"), TextNode("alt", "image", "www.image.com"), TextNode(".", "text")]
         self.assertEqual(snode1, rnode1)
 
-#    def test_split_nodes_image_basic(self):
-#        node1 = TextNode("This sentence contains an image: ![alt](www.image.com).", "text")
-#        snode1 = split_nodes_image([node1])
-#        rnode1 = [TextNode("This sentence contains an image: ", "text"), TextNode("alt", "image", "www.image.com"), TextNode(".", "text")]
-#        self.assertEqual(snode1, rnode1)
-#
-#    def test_split_nodes_link_basic(self):
-#        node1 = TextNode("This sentence contains a [hyperlink](www.image.com).", "text")
-#        snode1 = split_nodes_link([node1])
-#        rnode1 = [TextNode("This sentence contains a ", "text"), TextNode("hyperlink", "link", "www.image.com"), TextNode(".", "text")]
-#        self.assertEqual(snode1, rnode1)
-#
-#    def test_split_nodes_image_multiple(self):
-#        #Test case with multiple images.
-#        node1 = TextNode("This sentence contains an image: ![alt](www.image.com) and then another image: ![alt2](www.image2.com).", "text")
-#        snode1 = split_nodes_image([node1])
-#        rnode1 = [
-#                TextNode("This sentence contains an image: ", "text"),
-#                TextNode("alt", "image", "www.image.com"),
- #               TextNode(" and then another image: ", "text"),
-  #              TextNode("alt2", "image", "www.image2.com"),
-   #             TextNode(".", "text")]
-    #    self.assertEqual(snode1, rnode1)
+    def test_SND_link(self):
+        node1 = TextNode("This sentence contains a [hyperlink to hell](www.hell.com).", "text")
+        snode1 = split_nodes_delimiter([node1], "[", "link")
+        rnode1 = [TextNode("This sentence contains a ", "text"), TextNode("hyperlink to hell", "link", "www.hell.com"), TextNode(".", "text")]
+        self.assertEqual(snode1, rnode1)
 
-#    def test_split_nodes_mixed_image_link(self):
- #       #Test case with a link and image.
-  #      node1 = TextNode("This sentence contains an image: ![alt](www.image.com) as well as a [hyperlink](link.com).", "text")
-   #     snode1 = split_nodes_link([node1])
-    #    rnode1 = []
-     #   self.assertEqual(snode1, rnode1)
+    def test_SND_mixed(self):
+        node1 = TextNode("This sentence contains an image: ![alt](www.image.com) and a [hyperlink](www.google.com).", "text")
+        snode1 = split_nodes_delimiter([node1], "[", "image")
+        rnode1 = [TextNode("This sentence contains an image: ", "text"), TextNode("alt", "image", "www.image.com"), TextNode(" and a [hyperlink](www.google.com).", "text")]
+        self.assertEqual(snode1, rnode1)
+
 
 if __name__ == "__main__":
     unittest.main()
