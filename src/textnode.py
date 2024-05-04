@@ -114,7 +114,16 @@ def split_nodes_image(old_nodes:list) -> list:
     # 2. Concatenate the two instances of TextNode(..., "image") split_nodes_delimiter will find.
     
     # Init result list
-    split_nodes = split_nodes_delimiter(old_nodes, "[", "image")
+    
+    new_nodes = []
+    for o in old_nodes:
+        if len(extract.extract_markdown_links(o.text)) == 0:
+            new_nodes.append(o)
+    
+    if len(new_nodes) == 0:
+        return []
+
+    split_nodes = split_nodes_delimiter(new_nodes, "[", "image")
     
     # Loop over nodes to find image TextNode positions
     image_positions = []
@@ -126,6 +135,7 @@ def split_nodes_image(old_nodes:list) -> list:
         # 2. Concatenate the two instances of TextNode
         concat_node = TextNode(split_nodes[image_positions[0]].text, "image", split_nodes[image_positions[1]].text)
         split_nodes[image_positions[0]] = concat_node
+        
         del split_nodes[image_positions[1]]
 
         # 1. Remove the leading exclamation mark
@@ -135,6 +145,7 @@ def split_nodes_image(old_nodes:list) -> list:
             del split_nodes[image_positions[0]-1]
 
         # Update image_positions list
+        image_positions = list(map(lambda x: x-1, image_positions))
         del image_positions[0:2]
 
     return split_nodes
@@ -142,7 +153,15 @@ def split_nodes_image(old_nodes:list) -> list:
 def split_nodes_link(old_nodes: list) -> list:
     # Returns a list of TextNodes with links properly implemented. Copy of split_nodes_image(). Refer to that function for comments.
     
-    split_nodes = split_nodes_delimiter(old_nodes, "[", "link")
+    new_nodes = []
+    for o in old_nodes:
+        if len(extract.extract_markdown_images(o.text)) == 0:
+            new_nodes.append(o)
+
+    if len(new_nodes) == 0:
+        return []
+
+    split_nodes = split_nodes_delimiter(new_nodes, "[", "link")
     link_positions = []
 
     for i in range(len(split_nodes)):
@@ -153,6 +172,7 @@ def split_nodes_link(old_nodes: list) -> list:
         concat_node = TextNode(split_nodes[link_positions[0]].text, "link", split_nodes[link_positions[1]].text)
         split_nodes[link_positions[0]] = concat_node
         del split_nodes[link_positions[1]]
+        link_positions = list(map(lambda x: x-1, link_positions))
         del link_positions[0:2]
 
     return split_nodes

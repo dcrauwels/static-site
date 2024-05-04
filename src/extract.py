@@ -23,5 +23,5 @@ def extract_markdown_links(text: str) -> list:
     # Will use regex to extract the alt text and url. Based on previous, regex string should be:
     # \[(.*?)\][((.*?)\)
 
-    reg_str = r"!\[(.*?)\]\((.*?)\)"
+    reg_str = r"[^!]\[(.*?)\]\((.*?)\)"
     return re.findall(reg_str, text)
