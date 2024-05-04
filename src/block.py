@@ -5,12 +5,13 @@ def markdown_to_blocks(markdown: str) -> list:
     # also excessive newlines (two or more) are ignored
 
     result = [] #result holder
-    block_counter = 0 #oh god
+    block_holder = ""
     for line in markdown.split("\n"): #iterate over lines
-        if line == "" and len(result) > 0: #check if we don't have a leading empty line. if so, empty line = new block = block_counter++
-            
-            result[block_counter] = result[block_counter][:-2] #remove trailing newline
-            block_counter += 1
-        result[block_counter] += line + "\n"
-    result[block_counter] = result[block_counter][:-2] #for good measure
+        if line == "" and len(block_holder) > 0: #check if we don't have a leading empty line. if so, empty line = new block = block_counter++
+            result.append(block_holder)
+            block_holder = ""
+        else:
+            block_holder += line + " "
+    if len(block_holder) > 0:
+        result.append(block_holder)
     return result
