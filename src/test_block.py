@@ -7,6 +7,12 @@ class TestTextNode(unittest.TestCase):
         block1 = markdown_to_blocks(text1)
         rblock1 = ["This is a sample sentence. This is still the same block. ", "This is a new block. "]
         self.assertEqual(block1, rblock1)
+    
+    def test_block_empty(self):
+        text1 = "\n\n\n\n\n\n"
+        block1 = markdown_to_blocks(text1)
+        rblock1 = []
+        self.assertEqual(block1,rblock1)
 
 if __name__ == "__main__":
     unittest.main()

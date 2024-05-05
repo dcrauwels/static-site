@@ -10,7 +10,7 @@ def markdown_to_blocks(markdown: str) -> list:
         if line == "" and len(block_holder) > 0: #check if we don't have a leading empty line. if so, empty line = new block = block_counter++
             result.append(block_holder)
             block_holder = ""
-        else:
+        elif line != "":
             block_holder += line + " "
     if len(block_holder) > 0:
         result.append(block_holder)
