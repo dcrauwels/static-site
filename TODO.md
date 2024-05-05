@@ -1,3 +1,8 @@
 # TO-DO
-- Currently calling split_nodes_images() on a sentence with an image and a link will return an empty list. Same in the inverse case. Not exactly desirable behaviour but better than the alternative for the time being where it will interpret the link as an image (due to how I coded split_nodes_delimiter()) or image as a link depending on the function called.
-- Probably the most feasible solution for this problem is to rewrite the part in split_nodes_delimiter() that deals with images and links, which has been implemented quite shoddily as is, to instead use the extract library functions.
+- Next step is to continue block development, starting with different block types.
+-- Paragraph
+-- Heading
+-- Code
+-- Quote
+-- ulist
+-- olist
