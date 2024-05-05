@@ -1,5 +1,6 @@
 import unittest
-from block import markdown_to_blocks, block_to_block_type
+from block import markdown_to_blocks, block_to_block_type, markdown_to_html_node
+from htmlnode import HTMLNode, ParentNode, LeafNode
 
 class TestTextNode(unittest.TestCase):
     def test_block_simple(self):
@@ -38,6 +39,35 @@ class TestTextNode(unittest.TestCase):
         type1 = block_to_block_type(block1[0])
         rtype1 = "code"
         self.assertEqual(type1, rtype1)
+
+    def test_markdown_to_html_node_basic(self):
+        text1 = "# Heading\n\n- Hi\n- I'm\n- Daisy\n\nRegular *paragraph*"
+        node1 = markdown_to_html_node(text1)
+        rnode1 = ParentNode(
+                "div",
+                [
+                    ParentNode(
+                        "h1", [LeafNode(None, "Heading")]
+                        ),
+                    ParentNode(
+                        "ul", [
+                            ParentNode("li", [LeafNode(None, "Hi")]),
+                            ParentNode("li", [LeafNode(None, "I'm")]),
+                            ParentNode("li", [LeafNode(None, "Daisy")])
+                            ]
+                        ),
+                    ParentNode(
+                        "p", [
+                            LeafNode(None, "Regular "),
+                            LeafNode("i", "paragraph")
+                            ]
+                        )
+                    ]
+                )
+        self.assertEqual(node1, rnode1)
+
+
+
 
 if __name__ == "__main__":
     unittest.main()

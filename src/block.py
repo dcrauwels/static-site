@@ -1,3 +1,5 @@
+from htmlnode import HTMLNode, LeafNode, ParentNode
+
 def markdown_to_blocks(markdown: str) -> list:
     # converts an input string (assumed to be in markdown format) into a list of paragraph strings
     # markdown denotes paragraphs by inserting a newline in between
@@ -10,10 +12,12 @@ def markdown_to_blocks(markdown: str) -> list:
         if line == "" and len(block_holder) > 0: #check if we don't have a leading empty line. if so, empty line = new block = block_counter++
             result.append(block_holder.strip())
             block_holder = ""
-        elif line != "":
-            block_holder += line + " "
+        elif line != "" and line[0] not in ['*', '-']:
+            block_holder += line + " " # newlines in the same paragraph are interpreted as whitespace in MD
+        elif line != "" and line[0] in ['*', '-']:
+            block_holder += line + "\n" # however list items are separated by newline
     if len(block_holder) > 0:
-        result.append(block_holder.strip())
+        result.append(block_holder.strip(" "))
     return result
 
 def block_to_block_type(block: str) -> str:
@@ -69,3 +73,86 @@ def block_to_block_type(block: str) -> str:
     # Paragraph
     # if none of the other types are returned, it's a paragraph
     return "paragraph"
+
+def markdown_to_html_node(markdown: str) -> ParentNode:
+    # Converts a markdown text in str format to an ParentNode
+    from textnode import text_to_textnodes, text_node_to_html_node
+    
+    # convert the contained text (value) using text_to_textnode()
+    def text_to_children(text: str) -> list:
+        # converts a chunk of text to a list of HTMLNode children
+        # used in each of the functions below
+        result = []
+        nodes = text_to_textnodes(text)
+        for n in nodes:
+            result.append(text_node_to_html_node(n))
+        return result
+
+    # Subfunctions for block types
+    ## heading
+    def heading_to_html_node(block: str) -> ParentNode:
+        # need to check how many actual leading # the block has
+        # assume headings do not contain 
+        import re
+        level = len(re.search(r"(#+) ", block)[1])
+        return ParentNode(f"h{level}", text_to_children(block[level+1:]))
+
+    ## code
+    def code_to_html_node(block: str) -> ParentNode:
+        # code blocks shoudl be surrounded by a <code> tag nested inside a <pre> tag
+        l = ParentNode("code", text_to_children(block[3:-3]))
+        return ParentNode("pre", [l])
+
+    ## quote
+    def quote_to_html_node(block: str) -> ParentNode:
+        #quote blocks should be surrounded by a blockquote tag
+        #remember: each line in a block quote has a leading "> "
+        stripped_block = []
+        for line in block.split("\n"):
+            stripped_block.append(line[2:])
+        stripped_block = "\n".join(stripped_block)
+        return ParentNode("blockquote", text_to_children(stripped_block))
+
+    ## unordered list
+    def ulist_to_html_node(block: str) -> ParentNode:
+        # each of the list items needs to be made into a separate <li> htmlnode
+        # with a surrounding <ul> htmlnode
+        list_items = []
+        for line in block.split("\n"):
+            list_items.append(ParentNode("li", text_to_children(line[2:])))
+        return ParentNode("ul", list_items)
+
+    ## ordered list
+    def olist_to_html_node(block: str) -> ParentNode:
+        # each of the list items needs to be made into a separate <li> htmlnode
+        # with a surrounding <ol> htmlnode
+        list_items = []
+        for line in block.split("\n"):
+            list_items.append(ParentNode("li", text_to_children(line[3:])))
+        return ParentNode("ol", list_items)
+
+    ## paragraph
+    def paragraph_to_html_node(block: str) -> ParentNode:
+        return ParentNode("p", text_to_children(block))
+
+    # Call appropriate function
+    ## first we make a list with structure [[block, block_type],...]
+    blocks = [[b, block_to_block_type(b)] for b in markdown_to_blocks(markdown)]   
+    content = []
+    ## Then call the correct function
+    for b in blocks:
+        if b[1] == "heading":
+            content.append(heading_to_html_node(b[0]))
+        if b[1] == "code":
+            content.append(code_to_html_node(b[0]))
+        if b[1] == "quote":
+            content.append(quote_to_html_node(b[0]))
+        if b[1] == "unordered_list":
+            content.append(ulist_to_html_node(b[0]))
+        if b[1] == "ordered_list":
+            content.append(olist_to_html_node(b[0]))
+        if b[1] == "paragraph":
+            content.append(paragraph_to_html_node(b[0]))
+
+    # Finally export as a containing div
+    return ParentNode("div", content)
