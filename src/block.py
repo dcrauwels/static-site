@@ -135,7 +135,7 @@ def markdown_to_html_node(markdown: str) -> ParentNode:
     def paragraph_to_html_node(block: str) -> ParentNode:
         return ParentNode("p", text_to_children(block))
 
-    # Call appropriate function
+    # Call appropriate function for respective block type
     ## first we make a list with structure [[block, block_type],...]
     blocks = [[b, block_to_block_type(b)] for b in markdown_to_blocks(markdown)]   
     content = []

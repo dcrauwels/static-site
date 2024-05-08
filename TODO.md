@@ -1,8 +1,2 @@
 # TO-DO
-- Next step is to continue block development, starting with different block types.
--- Paragraph
--- Heading
--- Code
--- Quote
--- ulist
--- olist
+- Write more unit tests for the markdown_to_html_node() function in block.py
