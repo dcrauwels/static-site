@@ -42,7 +42,7 @@ def generate_page(
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
     
     # Read files
-    with open(from_path) as md_file, open(template_path) as template_file:
+    with open(from_path, 'r') as md_file, open(template_path, 'r') as template_file:
         markdown = md_file.read()
         template = template_file.read()
 
@@ -81,4 +81,37 @@ def generate_page(
     with open(dest_path, 'w') as f:
         f.write(output)
 
+    # return
     print("Page generated.")
+    return
+
+def generate_pages_recursive(
+        dir_path_content: str = "content",
+        template_path: str = "template.html",
+        dest_dir_path:str = "public"
+        ):
+    # Generates pages recursively by crawling entire directory.
+    # calls generate_page per .md file found.
+    
+    # imports
+    import os
+    import shutil
+
+    # clean up existing destination directory
+    if os.path.exists(dest_dir_path):
+        shutil.rmtree(dest_dir_path)
+    os.mkdir(dest_dir_path)
+
+    # generate recursively
+    for item in os.listdir(dir_path_content):
+        src_path = os.path.join(dir_path_content, item)
+        dst_path = os.path.join(dest_dir_path, item)
+        html_extended = item[:item.rfind('.')] + ".html"
+        html_path = os.path.join(dest_dir_path, html_extended)
+
+        if src_path[-3:] == ".md":
+            generate_page(src_path, template_path, html_path)
+        elif not os.path.isfile(src_path):
+            generate_pages_recursive(src_path, template_path, dst_path)
+
+    return

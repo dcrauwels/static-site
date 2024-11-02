@@ -15,12 +15,10 @@ def markdown_to_blocks(markdown: str) -> list:
             block_holder = ""
         else:
             block_holder += line + "\n"
-        #elif line != "" and line[0] not in ['*', '-']:
-        #    block_holder += line + " " # newlines in the same paragraph are interpreted as whitespace in MD
-        #elif line != "" and line[0] in ['*', '-']:
-        #    block_holder += line + "\n" # however list items are separated by newline
+    
     if len(block_holder) > 0:
         result.append(block_holder.strip())
+    
     return result
 
 def block_to_block_type(block: str) -> str:
@@ -130,7 +128,6 @@ def markdown_to_html_node(markdown: str) -> ParentNode:
         # each of the list items needs to be made into a separate <li> htmlnode
         # with a surrounding <ol> htmlnode
         list_items = []
-        print(block)
         for line in block.split("\n"):
             list_items.append(ParentNode("li", text_to_children(line[3:])))
         return ParentNode("ol", list_items)
