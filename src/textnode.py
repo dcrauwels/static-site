@@ -97,7 +97,8 @@ def split_nodes_delimiter(old_nodes: list, delimiter: str, text_type: str) -> li
                 if nn is None: # this means we have an image/link but are looking for the opposite. ergo we break immediately and append the whole thing at the end 
                     break
                 if nn is not None: # re.search() returns a None object if no matches are found.
-                    new_nodes.append(o_tail[0:(nn.start() + int(text_type == "link"))]) # the bool (to int) is because the absent exclamation mark is counted for the Match.start() position
+                    #new_nodes.append(o_tail[0:(nn.start() + int(text_type == "link"))]) # the bool (to int) is because the absent exclamation mark is counted for the Match.start() position
+                    new_nodes.append(o_tail[0:nn.start()])
                     new_nodes.append(TextNode(nn.groups()[0], text_type, nn.groups()[1])) 
             
             # regular (bold, italic, code, etc.)

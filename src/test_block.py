@@ -43,7 +43,7 @@ class TestTextNode(unittest.TestCase):
     def test_markdown_to_html_node_basic(self):
         text1 = "# Heading\n\n- Hi\n- I'm\n- Daisy\n\nRegular *paragraph*"
         node1 = markdown_to_html_node(text1)
-        rnode1 = ParentNode(
+        rnode1 = ParentNode( # note that div, h1, ul, li are all NOT leafnodes: they can contain text in bold, italic, etc.
                 "div",
                 [
                     ParentNode(

@@ -2,6 +2,7 @@ from htmlnode import HTMLNode, LeafNode, ParentNode
 
 def markdown_to_blocks(markdown: str) -> list:
     # converts an input string (assumed to be in markdown format) into a list of paragraph strings
+    # retuns a list of strings
     # markdown denotes paragraphs by inserting a newline in between
     # the result should therefore concatenate multiple strings in a block through the use of \n as a single string in the result list
     # also excessive newlines (two or more) are ignored
@@ -9,15 +10,15 @@ def markdown_to_blocks(markdown: str) -> list:
     result = [] #result holder
     block_holder = ""
     for line in markdown.split("\n"): #iterate over lines
-        if line == "" and len(block_holder) > 0: #check if we don't have a leading empty line. if so, empty line = new block = block_counter++
+        if line == "" and len(block_holder) > 0: #check if we don't have a leading empty line. if it's not a leading line, empty line means a new block starts
             result.append(block_holder.strip())
             block_holder = ""
-        elif line != "" and line[0] not in ['*', '-']:
-            block_holder += line + " " # newlines in the same paragraph are interpreted as whitespace in MD
-        elif line != "" and line[0] in ['*', '-']:
-            block_holder += line + "\n" # however list items are separated by newline
+        else:
+            block_holder += line + "\n"
+    
     if len(block_holder) > 0:
-        result.append(block_holder.strip(" "))
+        result.append(block_holder.strip())
+    
     return result
 
 def block_to_block_type(block: str) -> str:
@@ -99,8 +100,8 @@ def markdown_to_html_node(markdown: str) -> ParentNode:
 
     ## code
     def code_to_html_node(block: str) -> ParentNode:
-        # code blocks shoudl be surrounded by a <code> tag nested inside a <pre> tag
-        l = ParentNode("code", text_to_children(block[3:-3]))
+        # code blocks should be surrounded by a <code> tag nested inside a <pre> tag
+        l = ParentNode("code", text_to_children(block[4:-3]))
         return ParentNode("pre", [l])
 
     ## quote
@@ -133,7 +134,7 @@ def markdown_to_html_node(markdown: str) -> ParentNode:
 
     ## paragraph
     def paragraph_to_html_node(block: str) -> ParentNode:
-        return ParentNode("p", text_to_children(block))
+        return ParentNode("p", text_to_children(' '.join(block.split())))
 
     # Call appropriate function for respective block type
     ## first we make a list with structure [[block, block_type],...]
