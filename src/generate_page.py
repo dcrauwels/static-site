@@ -23,7 +23,7 @@ def generate_page(
 
     # Imports
     from block import markdown_to_html_node
-    from os import makedirs
+    from os import makedirs, path
 
     # Escapes
     ## Check for completely empty paths.
@@ -78,7 +78,7 @@ def generate_page(
 
 
     ## Write actual HTML page
-    with open(dest_path) as f:
+    with open(dest_path, 'w') as f:
         f.write(output)
 
     print("Page generated.")
